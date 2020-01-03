@@ -36,6 +36,7 @@ This code is based on "Melody" created by Tom Igoe
 // prototype definition
 void play_melody(int melody_no);
 int read_switch();
+int wait_for_switch = 0;
 
 
 // setup function
@@ -62,10 +63,36 @@ void loop() {
   
   //select a melody
   melody = read_switch();
-  //play melody
-  play_melody(melody);
+
+  switch (melody) {
+    case 0:
+      // Wait for melody select
+      if(wait_for_switch == 0) {
+        digitalWrite(PIN_LED_GREEN, LOW);
+        wait_for_switch = 1;
+      } else {
+        digitalWrite(PIN_LED_GREEN, HIGH);
+        wait_for_switch = 0;
+      }
+      delay(500);
+      break;
+
+    case 7:
+      // play anpan melody
+      play_melody(1);
+      play_melody(2);
+      play_melody(3);
+      play_melody(4);
+      break;
+    
+    default:
+      //play melody
+      play_melody(melody);
+      break;
+  }
+
   // delay
-  delay(1000); // delay 1 sec
+  //  delay(1000); // delay 1 sec
 
 }
 
@@ -95,7 +122,7 @@ int read_switch() {
   int retval = 0;
 
   if(digitalRead(PIN_SW1) == LOW){
-    retval += 1<<2;
+    retval += 1;
     digitalWrite(PIN_LED_RED, LOW);
   }else {
     digitalWrite(PIN_LED_RED, HIGH);
@@ -109,7 +136,7 @@ int read_switch() {
   }
   
   if(digitalRead(PIN_SW3) == LOW){
-    retval += 1;
+    retval += 1<<2;
     digitalWrite(PIN_LED_BLUE, LOW);
   }else {
     digitalWrite(PIN_LED_BLUE, HIGH);
