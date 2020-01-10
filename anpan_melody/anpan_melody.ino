@@ -20,7 +20,6 @@ This code is based on "Melody" created by Tom Igoe
   http://www.arduino.cc/en/Tutorial/Tone
 
 */
-
 #include "pitches.h"
 #include "anpan_melody.h"
 
@@ -99,16 +98,16 @@ void loop() {
 
 void play_melody(int melody_no) {
   // iterate over the notes of the melody:
-  for (int thisNote = 0; thisNote < notenum[melody_no]; thisNote++) {
+  for (uint16_t thisNote = 0; thisNote < pgm_read_word(&notenum[melody_no]); thisNote++) {
 
     // to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int noteDuration = 1000 / noteDurations[melody_no][thisNote];
-    tone(PIN_SPEAKER, melody[melody_no][thisNote], noteDuration);
+    uint16_t noteDuration = 1000 / pgm_read_word(&noteDurations[melody_no][thisNote]);
+    tone(PIN_SPEAKER, pgm_read_word(&melody[melody_no][thisNote]), noteDuration);
 
     // to distinguish the notes, set a minimum time between them.
     // the note's duration + 30% seems to work well:
-    int pauseBetweenNotes = noteDuration * 1.30;
+    uint16_t pauseBetweenNotes = noteDuration * 1.30;
     delay(pauseBetweenNotes);
     // stop the tone playing:
     noTone(PIN_SPEAKER);

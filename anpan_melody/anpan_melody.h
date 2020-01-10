@@ -1,9 +1,11 @@
+#include <avr/pgmspace.h>
+
 #define MELODY_NUM 8
-#define MAX_MELODY_NOTES 48
+#define MAX_MELODY_NOTES 512
 
 
 // tone number
-int notenum[MELODY_NUM]= {
+const uint16_t notenum[MELODY_NUM] PROGMEM = {
   //Melody #0 : no melody
   0,
     
@@ -31,7 +33,7 @@ int notenum[MELODY_NUM]= {
 
 
 // notes in the melody:
-const int melody[MELODY_NUM][MAX_MELODY_NOTES] = {
+const uint16_t melody[MELODY_NUM][MAX_MELODY_NOTES] PROGMEM = {
 
   //Melody #0 : no melody
   {},
@@ -80,7 +82,7 @@ const int melody[MELODY_NUM][MAX_MELODY_NOTES] = {
 };
 
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
-int noteDurations[MELODY_NUM][MAX_MELODY_NOTES] = {
+const uint16_t noteDurations[MELODY_NUM][MAX_MELODY_NOTES] PROGMEM = {
   //Melody #0 : no melody
   {},
 
