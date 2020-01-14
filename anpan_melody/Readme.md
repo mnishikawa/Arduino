@@ -8,6 +8,6 @@
 Arduino Pro miniを使ってアンパンマンのお菓子BOXをメロディボックスにするためのソースコードです。
 回路図、作り方含めてブログにまとめていますのでこちらを御覧ください。
 
-　https://mnishikawa.hatenablog.com/
+　https://mnishikawa.hatenablog.com/entry/2020/01/03/214536
 
 
