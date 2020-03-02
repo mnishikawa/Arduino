@@ -1,5 +1,5 @@
 /*
-Anpanman jukebox
+Anpanman jukebox 2
 
 Copyright 2020 Makoto Nishikawa
 
@@ -21,39 +21,58 @@ This code is based on "Melody" created by Tom Igoe
 
 */
 #include "pitches.h"
-#include "anpan_melody.h"
+#include "anpan_melody2.h"
 
 // Pin definitions
-#define PIN_SPEAKER 2
-#define PIN_LED_RED 3
-#define PIN_LED_GREEN 4
-#define PIN_LED_BLUE 5
-#define PIN_SW1 6
-#define PIN_SW2 7
-#define PIN_SW3 8
+#define PIN_SPEAKER     2
+
+#define PIN_7SEGLED_E  11
+#define PIN_7SEGLED_D  12
+#define PIN_7SEGLED_C   4
+#define PIN_7SEGLED_DP  5
+#define PIN_7SEGLED_B   6
+#define PIN_7SEGLED_A   7
+#define PIN_7SEGLED_F   9
+#define PIN_7SEGLED_G  10
+
+#define PIN_ADVOL       0
+
+// Define variable register value
+#define MAX_REGISTER_VAL 1024
+#define MELODY_STEP      (MAX_REGISTER_VAL / 8)
+
+
 
 // prototype definition
 void play_melody(int melody_no);
-int read_switch();
+int read_melody_num();
+void display_melody_num(int number);
 int wait_for_switch = 0;
 
 
 // setup function
 void setup() {
 
-  // initialize for LED port
-  pinMode(PIN_LED_RED, OUTPUT);
-  digitalWrite(PIN_LED_RED, HIGH);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  digitalWrite(PIN_LED_GREEN, HIGH);
-  pinMode(PIN_LED_BLUE, OUTPUT);
-  digitalWrite(PIN_LED_BLUE, HIGH);
+  // Initialize for Serial debug
+  Serial.begin(115200);
 
-  // initialize for switch input
-  pinMode(PIN_SW1, INPUT_PULLUP);
-  pinMode(PIN_SW2, INPUT_PULLUP);
-  pinMode(PIN_SW3, INPUT_PULLUP);
-  
+  // initialize for LED port
+  pinMode(PIN_7SEGLED_A, OUTPUT);
+  digitalWrite(PIN_7SEGLED_A, HIGH);
+  pinMode(PIN_7SEGLED_B, OUTPUT);
+  digitalWrite(PIN_7SEGLED_B, HIGH);
+  pinMode(PIN_7SEGLED_C, OUTPUT);
+  digitalWrite(PIN_7SEGLED_C, HIGH);
+  pinMode(PIN_7SEGLED_D, OUTPUT);
+  digitalWrite(PIN_7SEGLED_D, HIGH);
+  pinMode(PIN_7SEGLED_E, OUTPUT);
+  digitalWrite(PIN_7SEGLED_E, HIGH);
+  pinMode(PIN_7SEGLED_F, OUTPUT);
+  digitalWrite(PIN_7SEGLED_F, HIGH);
+  pinMode(PIN_7SEGLED_G, OUTPUT);
+  digitalWrite(PIN_7SEGLED_G, HIGH);
+  pinMode(PIN_7SEGLED_DP, OUTPUT);
+  digitalWrite(PIN_7SEGLED_DP, HIGH);
 }
 
 // main loop
@@ -61,16 +80,16 @@ void loop() {
   int melody;
   
   //select a melody
-  melody = read_switch();
+  melody = read_melody_num();
 
   switch (melody) {
     case 0:
       // Wait for melody select
       if(wait_for_switch == 0) {
-        digitalWrite(PIN_LED_GREEN, LOW);
+        display_melody_num(10);
         wait_for_switch = 1;
       } else {
-        digitalWrite(PIN_LED_GREEN, HIGH);
+        display_melody_num(0);
         wait_for_switch = 0;
       }
       delay(500);
@@ -111,36 +130,165 @@ void play_melody(int melody_no) {
     delay(pauseBetweenNotes);
     // stop the tone playing:
     noTone(PIN_SPEAKER);
+    // Update melody number
+    read_melody_num();
   }
 
 }
 
 
-int read_switch() {
+int read_melody_num() {
 
   int retval = 0;
+  int analog_val = 0;
 
-  if(digitalRead(PIN_SW1) == LOW){
-    retval += 1;
-    digitalWrite(PIN_LED_RED, LOW);
-  }else {
-    digitalWrite(PIN_LED_RED, HIGH);
-  }
-  
-  if(digitalRead(PIN_SW2) == LOW){
-    retval += 1<<1;
-    digitalWrite(PIN_LED_GREEN, LOW);
-  }else {
-    digitalWrite(PIN_LED_GREEN, HIGH);
-  }
-  
-  if(digitalRead(PIN_SW3) == LOW){
-    retval += 1<<2;
-    digitalWrite(PIN_LED_BLUE, LOW);
-  }else {
-    digitalWrite(PIN_LED_BLUE, HIGH);
-  }
+  // Read analog value from variable register
+  analog_val = analogRead(PIN_ADVOL);
+
+  // Get melody number
+  retval = analog_val / MELODY_STEP;
+
+  // Debug print
+//  Serial.print("register value : ");
+//  Serial.print(analog_val, DEC);
+//  Serial.print("\n");
+//  Serial.print("melody number : ");
+//  Serial.print(retval, DEC);
+//  Serial.print("\n");
+
+  // Display melody number
+  display_melody_num(retval);
+
 
   return retval;
 
+}
+
+void display_melody_num(int number) {
+
+
+  switch (number) {
+    case 0:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, HIGH); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, LOW); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 1:
+      digitalWrite(PIN_7SEGLED_A, LOW); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, LOW); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, LOW); 
+      digitalWrite(PIN_7SEGLED_G, LOW); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 2:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, LOW); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, HIGH); 
+      digitalWrite(PIN_7SEGLED_F, LOW); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 3:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, LOW); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 4:
+      digitalWrite(PIN_7SEGLED_A, LOW); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, LOW); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 5:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, LOW); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 6:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, LOW); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, HIGH); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 7:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, LOW); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, LOW); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 8:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, HIGH); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    case 9:
+      digitalWrite(PIN_7SEGLED_A, HIGH); 
+      digitalWrite(PIN_7SEGLED_B, HIGH); 
+      digitalWrite(PIN_7SEGLED_C, HIGH); 
+      digitalWrite(PIN_7SEGLED_D, HIGH); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, HIGH); 
+      digitalWrite(PIN_7SEGLED_G, HIGH); 
+      digitalWrite(PIN_7SEGLED_DP,LOW); 
+      break;
+      
+    default:
+      digitalWrite(PIN_7SEGLED_A, LOW); 
+      digitalWrite(PIN_7SEGLED_B, LOW); 
+      digitalWrite(PIN_7SEGLED_C, LOW); 
+      digitalWrite(PIN_7SEGLED_D, LOW); 
+      digitalWrite(PIN_7SEGLED_E, LOW); 
+      digitalWrite(PIN_7SEGLED_F, LOW); 
+      digitalWrite(PIN_7SEGLED_G, LOW); 
+      digitalWrite(PIN_7SEGLED_DP,HIGH); 
+      break;
+  }
+
+  
 }
