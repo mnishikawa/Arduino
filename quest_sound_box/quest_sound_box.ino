@@ -21,7 +21,7 @@ This code is based on "Melody" created by Tom Igoe
 
 */
 #include "pitches.h"
-#include "anpan_melody.h"
+#include "quest_sound_box.h"
 
 // Pin definitions
 #define PIN_SPEAKER 2
@@ -36,6 +36,8 @@ This code is based on "Melody" created by Tom Igoe
 void play_melody(int melody_no);
 int read_switch();
 int wait_for_switch = 0;
+int repeat_sound = 0;
+int melody = 0;
 
 
 // setup function
@@ -58,41 +60,75 @@ void setup() {
 
 // main loop
 void loop() {
-  int melody;
-  
+
   //select a melody
   melody = read_switch();
+  if((melody == 0) || (melody == repeat_sound)){
+    melody = repeat_sound;
+  }
 
   switch (melody) {
     case 0:
       // Wait for melody select
+      digitalWrite(PIN_LED_GREEN, LOW);
+      digitalWrite(PIN_LED_RED, LOW);
       if(wait_for_switch == 0) {
-        digitalWrite(PIN_LED_GREEN, LOW);
+        digitalWrite(PIN_LED_BLUE, LOW);
         wait_for_switch = 1;
       } else {
-        digitalWrite(PIN_LED_GREEN, HIGH);
+        digitalWrite(PIN_LED_BLUE, HIGH);
         wait_for_switch = 0;
       }
       delay(500);
       break;
 
+
+    case 1:
+      digitalWrite(PIN_LED_RED, LOW);
+      digitalWrite(PIN_LED_GREEN, HIGH);
+      digitalWrite(PIN_LED_BLUE, LOW);
+      play_melody(1,1536);
+      repeat_sound = 1;
+      break;      
+
+    case 2:
+      digitalWrite(PIN_LED_RED, HIGH);
+      digitalWrite(PIN_LED_GREEN, LOW);
+      digitalWrite(PIN_LED_BLUE, LOW);
+      play_melody(2,1216);
+      repeat_sound = 2;
+      break;      
+
+    case 4:
+      digitalWrite(PIN_LED_RED, LOW);
+      digitalWrite(PIN_LED_GREEN, LOW);
+      digitalWrite(PIN_LED_BLUE, HIGH);
+      play_melody(4,1000);
+      repeat_sound = 0;
+      break;      
+
     case 7:
-      // play anpan melody
+      // play quest melody
+      digitalWrite(PIN_LED_RED, HIGH);
+      digitalWrite(PIN_LED_GREEN, HIGH);
+      digitalWrite(PIN_LED_BLUE, HIGH);
       play_melody(1,1536);
       play_melody(2,1216);
-      play_melody(6,1000);
-//      play_melody(3,1000);
-//      play_melody(4,1000);
+      play_melody(4,1000);
+      repeat_sound = 0;
       break;
     
     default:
       //play melody
-      play_melody(melody,1000);
+      digitalWrite(PIN_LED_RED, LOW);
+      digitalWrite(PIN_LED_GREEN, LOW);
+      digitalWrite(PIN_LED_BLUE, HIGH);
+      play_melody(4,1000);
+      repeat_sound = 0;
+
       break;
   }
 
-  // delay
-  //  delay(1000); // delay 1 sec
 
 }
 
@@ -104,7 +140,7 @@ void play_melody(int melody_no, int melody_baseDuration) {
     // to calculate the note duration, take one second divided by the note type.
     //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
     uint16_t noteDuration = melody_baseDuration / pgm_read_word(&noteDurations[melody_no][thisNote]);
-    tone(PIN_SPEAKER, pgm_read_word(&melody[melody_no][thisNote]), noteDuration);
+    tone(PIN_SPEAKER, pgm_read_word(&melodynotes[melody_no][thisNote]), noteDuration);
 
     // to distinguish the notes, set a minimum time between them.
     // the note's duration + 30% seems to work well:
@@ -112,6 +148,15 @@ void play_melody(int melody_no, int melody_baseDuration) {
     delay(pauseBetweenNotes);
     // stop the tone playing:
     noTone(PIN_SPEAKER);
+
+    //select a melody
+    melody = read_switch();
+    if((melody == 0) || (melody == repeat_sound)){
+      melody = repeat_sound;
+    } else {
+      break;
+    }
+
   }
 
 }
@@ -123,23 +168,14 @@ int read_switch() {
 
   if(digitalRead(PIN_SW1) == LOW){
     retval += 1;
-    digitalWrite(PIN_LED_RED, LOW);
-  }else {
-    digitalWrite(PIN_LED_RED, HIGH);
   }
   
   if(digitalRead(PIN_SW2) == LOW){
     retval += 1<<1;
-    digitalWrite(PIN_LED_GREEN, LOW);
-  }else {
-    digitalWrite(PIN_LED_GREEN, HIGH);
   }
   
   if(digitalRead(PIN_SW3) == LOW){
     retval += 1<<2;
-    digitalWrite(PIN_LED_BLUE, LOW);
-  }else {
-    digitalWrite(PIN_LED_BLUE, HIGH);
   }
 
   return retval;
