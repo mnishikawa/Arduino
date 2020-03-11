@@ -1,5 +1,5 @@
 /*
-Anpanman jukebox
+Quest sound box
 
 Copyright 2020 Makoto Nishikawa
 
