@@ -28,7 +28,7 @@ This code is based on "Melody" created by Tom Igoe
 // Pin definitions
 #define PIN_ADVOL           0
 #define PIN_MELODYIC_CTRL   2
-#define PIN_SRCLK           3
+#define PIN_LATCH           3
 #define PIN_RCLK            4
 #define PIN_SER             5
 
@@ -40,12 +40,12 @@ This code is based on "Melody" created by Tom Igoe
 #define ADVAL_PLAY            63
 #define ADVAL_STOP           290
 #define MELODY_NUMBER         58
-#define MELODY_STEP         6.10
+#define MELODY_STEP            6
 
 // loop periodic
 //   - To check key input by every loop
-#define HZ 10
-#define READ_MELODY_NUM_PERIODIC 5
+#define HZ 120
+#define READ_MELODY_NUM_PERIODIC 20
 
 // prototype definition
 int read_melody_num();
@@ -54,9 +54,26 @@ void display_melody_num(int number);
 int is_play_key(int analogval);
 int is_stop_key(int analogval);
 
+// 7segment LED mapping
+static const int data[] {
+  B00000010,   //ZERO
+  B10011110,   //ONE
+  B00100100,   //TWO
+  B00001100,   //THREE
+  B10011000,   //FOUR
+  B01001000,   //FIVE
+  B01000000,   //SIX
+  B00011010,   //SEVEN
+  B00000000,   //EIGHT
+  B00001000,   //NINE
+};
+
 // Global value
 int melody = 0x01;
 int check_melody_number = READ_MELODY_NUM_PERIODIC;
+int led_digit = 0;
+int pressing_playkey = 0;
+
 
 // setup function
 void setup() {
@@ -67,7 +84,7 @@ void setup() {
   // initialize port
   pinMode(PIN_ADVOL, INPUT);
   pinMode(PIN_MELODYIC_CTRL, OUTPUT);
-  pinMode(PIN_SRCLK, OUTPUT);
+  pinMode(PIN_LATCH, OUTPUT);
   pinMode(PIN_RCLK, OUTPUT);
   pinMode(PIN_SER, OUTPUT);
 
@@ -85,8 +102,11 @@ void loop() {
   // Check Play key
   analog_val = analogRead(PIN_ADVOL);
 
-  if(is_play_key(analog_val) == true){
+  if( (is_play_key(analog_val) == true) && (pressing_playkey == 0)){
     play_melody(melody);
+    pressing_playkey = 1;
+  } else {
+    pressing_playkey = 0;
   }
   if(is_stop_key(analog_val) == true){
     send_melody_command(0xFF);
@@ -99,6 +119,8 @@ void loop() {
     check_melody_number = READ_MELODY_NUM_PERIODIC;
   }
 
+  // Display melody number
+  display_melody_num(melody);
   // loop delay
   delay(1000/HZ); 
 
@@ -135,6 +157,15 @@ void send_melody_command(int command) {
     }
       digitalWrite(PIN_MELODYIC_CTRL, LOW);
    }
+
+  // improve display quality
+  for(i=0;i<READ_MELODY_NUM_PERIODIC;i++) {
+    // Display melody number
+    display_melody_num(melody);
+    // loop delay
+    delay(1000/HZ); 
+  }
+   
     return 0;
 
 }
@@ -154,23 +185,34 @@ int read_melody_num(int analogval) {
      retval = 0x3A;
   }  
 
-  // Debug print
-  Serial.print("analog value : ");
-  Serial.print(analogval, DEC);
-  Serial.print("\n");
-
-  // Display melody number
-  display_melody_num(retval);
-
   return retval;
 }
 
+
 void display_melody_num(int number) {
-  // Debug print
-  Serial.print("melody number : ");
-  Serial.print(number, DEC);
-  Serial.print("\n");
+  char num1, num2, dispnum;
+
+  num1 = number / 10;
+  num2 = number % 10;
+
+  if(led_digit == 0) {
+    dispnum = data[num1] | 0x01;
+    led_digit = 1;
+  } else {
+    dispnum = data[num2] & 0xFE;
+    led_digit = 0;
+  }
+  digitalWrite(PIN_LATCH, LOW);
+  shiftOut(PIN_SER, PIN_RCLK, LSBFIRST, dispnum);
+  digitalWrite(PIN_LATCH, HIGH);
+
+  // improve display quality
+  if(led_digit == 0) {
+    delay(1000/HZ); 
+  }    
+
 }
+
 
 int is_play_key(int analogval){
   if( (analogval>(ADVAL_PLAY-ADVAL_MARGIN)) && (analogval<(ADVAL_PLAY+ADVAL_MARGIN))){
