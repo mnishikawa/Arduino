@@ -13,5 +13,8 @@ Arduino Pro miniを使って58曲が再生できるメロディIC「M8058S」を
 　https://mnishikawa.hatenablog.com/
 
 
+このコードは、Arduino pro mini 互換機（ATmega328P(3.3V 8MHz)）に最適化したタイミングパラメータをセットしています。16MHz品などでは各種設定を変更してご活用ください。
+
+
 
 
