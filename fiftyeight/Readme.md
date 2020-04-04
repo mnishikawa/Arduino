@@ -1,7 +1,7 @@
 ■　動作概要
 動画を御覧ください。
 
-　https://www.youtube.com/watch?v=jyT1zdc3tBE
+  https://www.youtube.com/watch?v=01Zvla04A8o
 
 
 ■　作り方等の情報
@@ -10,7 +10,7 @@ Arduino Pro miniを使って58曲が再生できるメロディIC「M8058S」を
 再生ボタンを押すと再生スタート、停止ボタンで再生停止します。
 回路図、作り方含めてブログにまとめていますのでこちらを御覧ください。
 
-　https://mnishikawa.hatenablog.com/
+　https://mnishikawa.hatenablog.com/entry/2020/04/04/160036
 
 
 このコードは、Arduino pro mini 互換機（ATmega328P(3.3V 8MHz)）に最適化したタイミングパラメータをセットしています。16MHz品などでは各種設定を変更してご活用ください。
