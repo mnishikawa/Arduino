@@ -101,13 +101,13 @@ void loop() {
       servo.write(180);
       pumping = 1;
       pumpcount++;
-      delay(1000);
+      delay(500);
       } 
   } else {
     Serial.print("Stop pumping\n");
     servo.write(0);
     pumping = 0;
-    delay(1000);
+    delay(500);
   }
 
   //Display current status to LCD
