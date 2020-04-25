@@ -1,5 +1,5 @@
 /*
-Servo test code for SG92R
+Autosanitizer for Arduino
 
 Copyright 2020 Makoto Nishikawa
 
