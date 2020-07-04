@@ -17,8 +17,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <LiquidCrystal.h>
 
 #define PIN_SERVO_PWM     9
-#define PIN_SW_INIT       2
-#define PIN_SW_PUSHPUMP   3
+#define PIN_ECHO          2
+#define PIN_TRIG          3
+#define PIN_SW_PUSHPUMP   8
+#define PIN_SW_INIT       7
+#define PIN_SW_PUSHPUMP   8
 #define PIN_ANALOG_CDS    0
 #define PIN_CDS_THRESHOLD 1
 #define PIN_LCD_RS        4 // LCD register select signal
@@ -30,6 +33,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // Prototype definitions
 void display_status();
+float ultrasonic_read();
+
 
 // servo instance
 Servo servo;
@@ -64,6 +69,10 @@ void setup() {
   lcd.begin( 16, 2 );
   lcd.clear();
   lcd.setCursor(0, 0);
+
+  // Initialize for Ultrasonic Sensor
+  pinMode(PIN_TRIG,OUTPUT);
+  pinMode(PIN_ECHO,INPUT);
   
 }
 
@@ -80,7 +89,8 @@ void loop() {
   }
   
   // Read analog value from variable register
-  analog_val = analogRead(PIN_ANALOG_CDS);
+//  analog_val = analogRead(PIN_ANALOG_CDS);
+  analog_val = 0;
   // Debug print
   Serial.print("Cds value : ");
   Serial.print(analog_val, DEC);
@@ -110,6 +120,29 @@ void loop() {
     delay(500);
   }
 
+  analog_val = (int)ultrasonic_read();
+  if(analog_val < cds_detectval ) {
+    // Debug print
+    Serial.print("Detect ultrasonic sensor \n");
+    Serial.print(analog_val, DEC);
+    Serial.print("\n");
+    if(pumping == 0){
+      // pumping lequid
+      Serial.print("Pumping lequid\n");
+      servo.write(180);
+      pumping = 1;
+      pumpcount++;
+      delay(500);
+      } 
+  } else {
+    Serial.print("Stop pumping\n");
+    servo.write(0);
+    pumping = 0;
+    delay(500);
+  }
+
+
+
   //Display current status to LCD
   display_status();
  
@@ -117,6 +150,29 @@ void loop() {
   delay(500);
   
 }
+
+
+float ultrasonic_read() {
+  int duration = 0;
+  float distance = 0;;
+  const unsigned int MAX_DIST = 23200; //400cm(23200μs/pulse)以上は測定範囲外
+
+  digitalWrite(PIN_TRIG,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG,LOW);
+
+  duration = pulseIn(PIN_ECHO,HIGH);
+  if(duration>0){
+    distance=duration/58.8;
+  }
+  
+  if(duration>MAX_DIST){
+    return 400;
+  }else{
+    return distance;
+  }
+}
+
 
 
 void display_status()
