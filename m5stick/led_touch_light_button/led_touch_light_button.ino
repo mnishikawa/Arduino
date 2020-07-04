@@ -1,7 +1,7 @@
 #include <M5StickC.h>
 
 #define BIGSW 36
-#define LIGHTLED 26
+#define LIGHTLED 0
 
 int sw_val = 0;
 
