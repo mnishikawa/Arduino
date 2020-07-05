@@ -17,8 +17,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <LiquidCrystal.h>
 
 #define PIN_SERVO_PWM     9
-#define PIN_ECHO          2
-#define PIN_TRIG          3
+#define PIN_TRIG          2
+#define PIN_ECHO          3
 #define PIN_SENSOR_THRESHOLD 1
 #define PIN_LCD_RS        4 // LCD register select signal
 #define PIN_LCD_EN        6 // LCD operation enable signal
@@ -88,7 +88,6 @@ void loop() {
 
   sensor_val = (int)ultrasonic_read();
   // Debug print
-  Serial.print("Detect ultrasonic sensor \n");
   Serial.print(sensor_val, DEC);
   Serial.print(" cm");
   Serial.print("\n");
@@ -96,6 +95,7 @@ void loop() {
   if(sensor_val < sensor_detectval ) {
     if(pumping == 0){
       // pumping lequid
+      Serial.print("Detect ultrasonic sensor \n");
       Serial.print("Pumping lequid\n");
       servo.write(180);
       pumping = 1;
