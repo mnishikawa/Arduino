@@ -1,5 +1,5 @@
 /*
-Autosanitizer for Arduino
+Autosanitizer2 for Arduino
 
 Copyright 2020 Makoto Nishikawa
 
@@ -19,17 +19,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define PIN_SERVO_PWM     9
 #define PIN_ECHO          2
 #define PIN_TRIG          3
-#define PIN_SW_PUSHPUMP   8
-#define PIN_SW_INIT       7
-#define PIN_SW_PUSHPUMP   8
-#define PIN_ANALOG_CDS    0
-#define PIN_CDS_THRESHOLD 1
+#define PIN_SENSOR_THRESHOLD 1
 #define PIN_LCD_RS        4 // LCD register select signal
 #define PIN_LCD_EN        6 // LCD operation enable signal
 #define PIN_LCD_DB4      10 // LCD data bus line
 #define PIN_LCD_DB5      11 // LCD data bus line
 #define PIN_LCD_DB6      12 // LCD data bus line
 #define PIN_LCD_DB7      13 // LCD data bus line
+
+#define SENSOR_THRESHOLD_MAX 1024 // ADC MAX value
+#define MAX_DISTANCE 100          // 100cm
+#define SENSOR_RESOLUTION (SENSOR_THRESHOLD_MAX / MAX_DISTANCE)
 
 // Prototype definitions
 void display_status();
@@ -44,7 +44,7 @@ LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_DB4, PIN_LCD_DB5, PIN_LCD_DB6,
 
 
 // CDS threshold default value
-int cds_detectval = 100;
+unsigned int sensor_detectval = 10;
 
 // status definitions
 int pumping = 0;
@@ -61,11 +61,7 @@ void setup() {
   servo.attach(PIN_SERVO_PWM);
   servo.write(0);
 
-  // Initialize for button
-  pinMode(PIN_SW_INIT, INPUT_PULLUP);
-  pinMode(PIN_SW_PUSHPUMP, INPUT_PULLUP);
-
-  // Initialize for LCD
+  // Initialize for LCD (for 1602A LED)
   lcd.begin( 16, 2 );
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -79,75 +75,45 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int i;
-  int analog_val;
+  int sensor_val;
 
-  // button operation
-  if(digitalRead(PIN_SW_INIT) == LOW){
-    servo.write(0);
-  } else if(digitalRead(PIN_SW_PUSHPUMP) == LOW) {
-    servo.write(180);
-  }
-  
   // Read analog value from variable register
-//  analog_val = analogRead(PIN_ANALOG_CDS);
-  analog_val = 0;
-  // Debug print
-  Serial.print("Cds value : ");
-  Serial.print(analog_val, DEC);
-  Serial.print("\n");
+  sensor_detectval = analogRead(PIN_SENSOR_THRESHOLD) / SENSOR_RESOLUTION;
 
-  cds_detectval = analogRead(PIN_CDS_THRESHOLD);
   // Debug print
   Serial.print("Sensor detect value: ");
-  Serial.print(cds_detectval, DEC);
+  Serial.print(sensor_detectval, DEC);
+  Serial.print(" cm");
   Serial.print("\n");
 
-  if( analog_val>cds_detectval){
-    // Debug print
-    Serial.print("Detect cds dark state\n");
+  sensor_val = (int)ultrasonic_read();
+  // Debug print
+  Serial.print("Detect ultrasonic sensor \n");
+  Serial.print(sensor_val, DEC);
+  Serial.print(" cm");
+  Serial.print("\n");
+
+  if(sensor_val < sensor_detectval ) {
     if(pumping == 0){
       // pumping lequid
       Serial.print("Pumping lequid\n");
       servo.write(180);
       pumping = 1;
       pumpcount++;
-      delay(500);
       } 
+    delay(1000);
   } else {
     Serial.print("Stop pumping\n");
     servo.write(0);
     pumping = 0;
-    delay(500);
+    delay(200);
   }
-
-  analog_val = (int)ultrasonic_read();
-  if(analog_val < cds_detectval ) {
-    // Debug print
-    Serial.print("Detect ultrasonic sensor \n");
-    Serial.print(analog_val, DEC);
-    Serial.print("\n");
-    if(pumping == 0){
-      // pumping lequid
-      Serial.print("Pumping lequid\n");
-      servo.write(180);
-      pumping = 1;
-      pumpcount++;
-      delay(500);
-      } 
-  } else {
-    Serial.print("Stop pumping\n");
-    servo.write(0);
-    pumping = 0;
-    delay(500);
-  }
-
-
 
   //Display current status to LCD
   display_status();
  
   //wait for loop
-  delay(500);
+  delay(300);
   
 }
 
@@ -188,6 +154,7 @@ void display_status()
   //Display CdS threshold
   lcd.setCursor(0, 1);
   lcd.print("SENSOR: ");
-  lcd.print(cds_detectval, DEC);
+  lcd.print(sensor_detectval, DEC);
+  lcd.print(" cm   ");
   
 }
